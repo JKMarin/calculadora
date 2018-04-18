@@ -7,18 +7,45 @@
 //
 
 import UIKit
-
+public struct Stack<T> {
+    fileprivate var array = [T]()
+    
+    public var count: Int {
+        return array.count
+    }
+    
+    public var isEmpty: Bool {
+        return array.isEmpty
+    }
+    
+    public mutating func push(_ element: T) {
+        array.append(element)
+    }
+    
+    public mutating func pop() -> T? {
+        return array.popLast()
+    }
+    
+    public func peek() -> T? {
+        return array.last
+    }
+}
 class ViewController: UIViewController {
-
+    
     @IBOutlet weak var lblComandos: UILabel!
     @IBOutlet weak var lblResultado: UILabel!
     var numeroActual:Int=0
+    var operadorActual:String=""
     var resultadoAcumulado:Int=0
+    var expresionInFix:String=""
+    var digitandoNumero:Bool=false
+    var digitandoOperador:Bool=false
+    var negativoNumero:Bool=false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        lblResultado.text="0"
+        lblResultado.text=""
         lblComandos.text=""
     }
 
@@ -33,13 +60,51 @@ class ViewController: UIViewController {
         return (a-b)
     }
     func agregaDigito(digito:Int){
-        numeroActual = (numeroActual*10)+digito
-        lblResultado.text = lblResultado.text! + String(digito)
+        if (digito == 0 && numeroActual==0){
+            return
+        }
+        digitandoNumero = true
+        digitandoOperador = false
+        operadorActual = ""
+        if numeroActual >= 0{
+           numeroActual = (numeroActual*10)+digito
+        }else{
+            numeroActual = (numeroActual*10)-digito
+        }
+        
+        if negativoNumero{
+            numeroActual *= -1
+            negativoNumero = false
+        }
+        lblResultado.text = expresionInFix + String(numeroActual)
         
     }
-    func presionaComando (comando:String) {
+    func presionaComando (operador:String) {
+        digitandoNumero = false
+        if (expresionInFix != "" || numeroActual != 0){
+            expresionInFix += String(numeroActual)
+        }
+        if digitandoOperador {
+            if (operador != "-" || (operador == "-" && operador != operadorActual)){
+               return
+            }
+            else{
+                negativoNumero = true
+            }
+        }else{
+            if (operador != "-" && expresionInFix == ""){
+                return
+            }
+            if (operador == "-" && expresionInFix == ""){
+                negativoNumero = true
+                lblResultado.text = expresionInFix + operador
+                return
+            }
+        }
+        digitandoOperador = true
+        operadorActual = operador
         //lblComandos.text = lblComandos.text! + comando
-        switch comando {
+        switch operador {
         case "+":
             resultadoAcumulado = suma(a:resultadoAcumulado,b:numeroActual)
         case "-":
@@ -49,17 +114,22 @@ class ViewController: UIViewController {
         default: "Nothing"
             
         }
-        lblResultado.text = lblResultado.text! + comando
+        
+        numeroActual = 0
+        expresionInFix += operador
+        lblResultado.text = expresionInFix
         //presionaComando(comando:(sender:UIButton).titleLabel!.text!)
     }
     
     @IBAction func clickNumero(_ sender: UIButton) {
         agregaDigito(digito:sender.tag)
+        
     }
     
-    @IBAction func clickComando(_ sender: UIButton) {
-        presionaComando(comando:sender.titleLabel!.text!)
+    @IBAction func clickOperador(_ sender: UIButton) {
+        presionaComando(operador:sender.titleLabel!.text!)
     }
+    
     
     @IBAction func clickDone(_ sender: UIButton) {
         lblComandos.text = String(resultadoAcumulado)
