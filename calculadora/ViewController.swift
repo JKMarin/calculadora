@@ -82,7 +82,8 @@ class ViewController: UIViewController {
             return false
         }
     }
-    func generarPostFix(){
+    func generarPostFix(_ ultimoValor:Int){
+        expresonPostFix.removeAll()
         for valor in expresionInFix.array{
             switch valor{
             case "+","-","*","/":
@@ -92,15 +93,29 @@ class ViewController: UIViewController {
                     if mayorPrecedencia(valor, pilaOperadores.peek()!){
                         pilaOperadores.push(valor)
                     }else{
-                        
+                        repeat{
+                            expresonPostFix.append(pilaOperadores.pop()!)
+                        }while( !pilaOperadores.isEmpty &&
+                            !mayorPrecedencia(valor,pilaOperadores.peek()!))
+                        pilaOperadores.push(valor)
                     }
                 }
             default:
                 expresonPostFix.append(valor)
             }
         }
+        if ultimoValor != 0 {
+            expresonPostFix.append(String(ultimoValor))
+        }
+        while !pilaOperadores.isEmpty {
+            expresonPostFix.append(pilaOperadores.pop()!)
+        }
     }
     
+    func evaluarExpresion(_ ultimoValor:Int){
+        generarPostFix(ultimoValor)
+        lblComandos.text=expresonPostFix.joined()
+    }
     func suma(a:Int,b:Int)-> Int{
         return (a+b)
     }
@@ -125,7 +140,7 @@ class ViewController: UIViewController {
             negativoNumero = false
         }
         lblResultado.text = expresionInFix.description + String(numeroActual)
-        
+        evaluarExpresion(numeroActual)
     }
     func presionaComando (operador:String) {
         digitandoNumero = false
@@ -171,7 +186,7 @@ class ViewController: UIViewController {
         default: "Nothing"
             
         }
-        
+        evaluarExpresion(0)
         numeroActual = 0
         expresionInFix.push(operador) //+= operador
         lblResultado.text = expresionInFix.description
