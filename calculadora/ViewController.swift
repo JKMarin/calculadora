@@ -43,7 +43,9 @@ extension Stack: CustomStringConvertible {
 }
 class ViewController: UIViewController {
     
-    @IBOutlet weak var lblResultado: UILabel!
+    @IBOutlet weak var cajaComandos: UILabel!
+    @IBOutlet weak var cajaResultado: UILabel!
+    
     var numeroActual:Int=0
     var operadorActual:String=""
     var resultadoAcumulado:Int=0
@@ -57,8 +59,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        lblResultado.text=""
-        //lblComandos.text=""
+        cajaComandos.text=""
+        cajaResultado.text=""
     }
 
     override func didReceiveMemoryWarning() {
@@ -69,7 +71,7 @@ class ViewController: UIViewController {
     func precedencia(_ operador:String)-> Int{
         switch operador{
         case "+","-": return 1
-        case "*","/": return 2
+        case "x","/": return 2
         default: return 0
         }
 
@@ -85,7 +87,7 @@ class ViewController: UIViewController {
         expresonPostFix.removeAll()
         for valor in expresionInFix.array{
             switch valor{
-            case "+","-","*","/":
+            case "+","-","x","/":
                 if pilaOperadores.isEmpty{
                     pilaOperadores.push(valor)
                 }else{
@@ -112,8 +114,37 @@ class ViewController: UIViewController {
     }
     
     func evaluarExpresion(_ ultimoValor:Int){
+        var pilaValores=Stack<Float>()
+        var operando1:Float=0
+        var operando2:Float=0
+        
         generarPostFix(ultimoValor)
-        lblComandos.text=expresonPostFix.joined()
+        for item in expresonPostFix{
+            switch item{
+            case "+","-","x","/":
+                operando2=pilaValores.pop()!
+                operando1=pilaValores.pop()!
+            default:
+                pilaValores.push(Float(item)!)
+            }
+            switch item{
+            case "+":
+                pilaValores.push(operando1 + operando2)
+            case "-":
+                pilaValores.push(operando1 - operando2)
+            case "x":
+                pilaValores.push(operando1 * operando2)
+            case "/":
+                pilaValores.push(operando1 / operando2)
+            default: break
+                
+            }
+        }
+        if pilaValores.isEmpty{
+            cajaResultado.text=""
+        }else{
+            cajaResultado.text=String(pilaValores.pop()!)//expresonPostFix.joined()
+        }
     }
     func suma(a:Int,b:Int)-> Int{
         return (a+b)
@@ -138,7 +169,7 @@ class ViewController: UIViewController {
             numeroActual *= -1
             negativoNumero = false
         }
-        lblResultado.text = expresionInFix.description + String(numeroActual)
+        cajaComandos.text = expresionInFix.description + String(numeroActual)
         evaluarExpresion(numeroActual)
     }
     func presionaComando (operador:String) {
@@ -151,7 +182,7 @@ class ViewController: UIViewController {
                 if operador != "-"{
                     expresionInFix.pop()//.removeLast()
                     expresionInFix.push(operador) //+= operador
-                    lblResultado.text = expresionInFix.description
+                    cajaComandos.text = expresionInFix.description
                     operadorActual = operador
                     negativoNumero=false
                 }
@@ -159,7 +190,7 @@ class ViewController: UIViewController {
             }
             else{
                 negativoNumero = true
-                lblResultado.text = expresionInFix.description + operador
+                cajaComandos.text = expresionInFix.description + operador
                 return
             }
         }else{
@@ -168,7 +199,7 @@ class ViewController: UIViewController {
             }
             if (operador == "-" && expresionInFix.isEmpty){
                 negativoNumero = true
-                lblResultado.text = expresionInFix.description + operador
+                cajaComandos.text = expresionInFix.description + operador
                 return
             }
         }
@@ -180,7 +211,7 @@ class ViewController: UIViewController {
             resultadoAcumulado = suma(a:resultadoAcumulado,b:numeroActual)
         case "-":
             resultadoAcumulado = resta(a:resultadoAcumulado,b:numeroActual)
-        case "*": suma(a:1,b:2)
+        case "X": suma(a:1,b:2)
         case "/": suma(a:1,b:2)
         default: "Nothing"
             
@@ -188,7 +219,7 @@ class ViewController: UIViewController {
         evaluarExpresion(0)
         numeroActual = 0
         expresionInFix.push(operador) //+= operador
-        lblResultado.text = expresionInFix.description
+        cajaComandos.text = expresionInFix.description
         //presionaComando(comando:(sender:UIButton).titleLabel!.text!)
     }
     
@@ -203,8 +234,8 @@ class ViewController: UIViewController {
     
     
     @IBAction func clickDone(_ sender: UIButton) {
-        lblComandos.text = String(resultadoAcumulado)
-        lblResultado.text=""
+        //lblComandos.text = String(resultadoAcumulado)
+        cajaComandos.text=""
         resultadoAcumulado=0
         numeroActual=0
         
