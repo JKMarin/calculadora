@@ -81,15 +81,24 @@ class ViewController: UIViewController {
     }
     func presionaComando (operador:String) {
         digitandoNumero = false
-        if (expresionInFix != "" || numeroActual != 0){
+        if (numeroActual != 0){
             expresionInFix += String(numeroActual)
         }
         if digitandoOperador {
-            if (operador != "-" || (operador == "-" && operador != operadorActual)){
-               return
+            if (operador != "-" || (operador == "-" && operador == operadorActual)){
+                if operador != "-"{
+                    expresionInFix.removeLast()
+                    expresionInFix += operador
+                    lblResultado.text = expresionInFix
+                    operadorActual = operador
+                    negativoNumero=false
+                }
+                return
             }
             else{
                 negativoNumero = true
+                lblResultado.text = expresionInFix + operador
+                return
             }
         }else{
             if (operador != "-" && expresionInFix == ""){
