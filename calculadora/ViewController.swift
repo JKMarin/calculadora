@@ -29,6 +29,17 @@ public struct Stack<T> {
     public func peek() -> T? {
         return array.last
     }
+    
+    public mutating func clear(){
+        array.removeAll()
+    }
+}
+extension Stack: CustomStringConvertible {
+    public var description: String {
+        let stackElements = array.map { "\($0)" }.joined(separator: "")
+        //
+        return stackElements
+    }
 }
 class ViewController: UIViewController {
     
@@ -37,7 +48,9 @@ class ViewController: UIViewController {
     var numeroActual:Int=0
     var operadorActual:String=""
     var resultadoAcumulado:Int=0
-    var expresionInFix:String=""
+    var expresionInFix = Stack<String>()//String=""
+    var pilaOperadores = Stack<String>()
+    var expresonPostFix = [String]()
     var digitandoNumero:Bool=false
     var digitandoOperador:Bool=false
     var negativoNumero:Bool=false
@@ -53,6 +66,41 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    func precedencia(_ operador:String)-> Int{
+        switch operador{
+        case "+","-": return 1
+        case "*","/": return 2
+        default: return 0
+        }
+
+    }
+    func mayorPrecedencia(_ operador:String, _ comparador:String) -> Bool {
+        if precedencia(operador)>precedencia(comparador){
+            return true
+        }else{
+            return false
+        }
+    }
+    func generarPostFix(){
+        for valor in expresionInFix.array{
+            switch valor{
+            case "+","-","*","/":
+                if pilaOperadores.isEmpty{
+                    pilaOperadores.push(valor)
+                }else{
+                    if mayorPrecedencia(valor, pilaOperadores.peek()!){
+                        pilaOperadores.push(valor)
+                    }else{
+                        
+                    }
+                }
+            default:
+                expresonPostFix.append(valor)
+            }
+        }
+    }
+    
     func suma(a:Int,b:Int)-> Int{
         return (a+b)
     }
@@ -76,20 +124,20 @@ class ViewController: UIViewController {
             numeroActual *= -1
             negativoNumero = false
         }
-        lblResultado.text = expresionInFix + String(numeroActual)
+        lblResultado.text = expresionInFix.description + String(numeroActual)
         
     }
     func presionaComando (operador:String) {
         digitandoNumero = false
         if (numeroActual != 0){
-            expresionInFix += String(numeroActual)
+            expresionInFix.push(String(numeroActual)) //+= String(numeroActual)
         }
         if digitandoOperador {
             if (operador != "-" || (operador == "-" && operador == operadorActual)){
                 if operador != "-"{
-                    expresionInFix.removeLast()
-                    expresionInFix += operador
-                    lblResultado.text = expresionInFix
+                    expresionInFix.pop()//.removeLast()
+                    expresionInFix.push(operador) //+= operador
+                    lblResultado.text = expresionInFix.description
                     operadorActual = operador
                     negativoNumero=false
                 }
@@ -97,16 +145,16 @@ class ViewController: UIViewController {
             }
             else{
                 negativoNumero = true
-                lblResultado.text = expresionInFix + operador
+                lblResultado.text = expresionInFix.description + operador
                 return
             }
         }else{
-            if (operador != "-" && expresionInFix == ""){
+            if (operador != "-" && expresionInFix.isEmpty){
                 return
             }
-            if (operador == "-" && expresionInFix == ""){
+            if (operador == "-" && expresionInFix.isEmpty){
                 negativoNumero = true
-                lblResultado.text = expresionInFix + operador
+                lblResultado.text = expresionInFix.description + operador
                 return
             }
         }
@@ -125,8 +173,8 @@ class ViewController: UIViewController {
         }
         
         numeroActual = 0
-        expresionInFix += operador
-        lblResultado.text = expresionInFix
+        expresionInFix.push(operador) //+= operador
+        lblResultado.text = expresionInFix.description
         //presionaComando(comando:(sender:UIButton).titleLabel!.text!)
     }
     

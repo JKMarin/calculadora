@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "calculadora/ViewController.swift"
-            timestampString = "545808101.499144"
+            timestampString = "545810926.518955"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "83"
-            endingLineNumber = "83"
+            startingLineNumber = "90"
+            endingLineNumber = "90"
             landmarkName = "presionaComando(operador:)"
             landmarkType = "7">
          </BreakpointContent>
