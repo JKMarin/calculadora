@@ -228,13 +228,12 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
-                        <outlet property="lblComandos" destination="Y0O-5E-Pld" id="dbn-vu-Ybb"/>
                         <outlet property="lblResultado" destination="2Bd-NZ-lir" id="CVX-v8-e2a"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="127" y="-11"/>
+            <point key="canvasLocation" x="-105" y="-327"/>
         </scene>
     </scenes>
 </document>

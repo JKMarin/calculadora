@@ -43,7 +43,6 @@ extension Stack: CustomStringConvertible {
 }
 class ViewController: UIViewController {
     
-    @IBOutlet weak var lblComandos: UILabel!
     @IBOutlet weak var lblResultado: UILabel!
     var numeroActual:Int=0
     var operadorActual:String=""
@@ -59,7 +58,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         lblResultado.text=""
-        lblComandos.text=""
+        //lblComandos.text=""
     }
 
     override func didReceiveMemoryWarning() {
