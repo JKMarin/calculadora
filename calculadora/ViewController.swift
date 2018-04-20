@@ -41,6 +41,16 @@ extension Stack: CustomStringConvertible {
         return stackElements
     }
 }
+extension Float {
+    var cleanValue: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = self.truncatingRemainder(dividingBy: 1) == 0 ? 0 : 8
+        
+        //self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
+        return  formatter.string(from: NSNumber(value:self))!
+    }
+}
 class ViewController: UIViewController {
     
     @IBOutlet weak var cajaComandos: UILabel!
@@ -117,6 +127,7 @@ class ViewController: UIViewController {
         var pilaValores=Stack<Float>()
         var operando1:Float=0
         var operando2:Float=0
+        var resultado:Float=0
         
         generarPostFix(ultimoValor)
         for item in expresonPostFix{
@@ -128,22 +139,24 @@ class ViewController: UIViewController {
                 pilaValores.push(Float(item)!)
             }
             switch item{
-            case "+":
-                pilaValores.push(operando1 + operando2)
-            case "-":
-                pilaValores.push(operando1 - operando2)
-            case "x":
-                pilaValores.push(operando1 * operando2)
-            case "/":
-                pilaValores.push(operando1 / operando2)
+            case "+": resultado = operando1 + operando2
+                  pilaValores.push(resultado)
+            case "-":resultado = operando1 - operando2
+                pilaValores.push(resultado)
+            case "x":resultado = operando1 * operando2
+                pilaValores.push(resultado)
+            case "/":resultado = operando1 / operando2
+                pilaValores.push(resultado)
+                
             default: break
                 
             }
+            
         }
         if pilaValores.isEmpty{
             cajaResultado.text=""
         }else{
-            cajaResultado.text=String(pilaValores.pop()!)//expresonPostFix.joined()
+            cajaResultado.text=pilaValores.pop()!.cleanValue//expresonPostFix.joined()
         }
     }
     func suma(a:Int,b:Int)-> Int{
