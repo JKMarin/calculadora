@@ -41,8 +41,19 @@ public struct Stack<T> {
 extension Stack: CustomStringConvertible {
     //Extension de la clase para convertir el arreglo en un string https://github.com/raywenderlich/swift-algorithm-club
     public var description: String {
-        let stackElements = array.map { "\($0)" }.joined(separator: "")
-        
+        //let stackElements = array.map { "\($0)" }.joined(separator: "")
+        let arrayElements = array.map { "\($0)" }
+        var elements = [String]()
+        for element in arrayElements{
+            switch element{
+                case "+","-","x","÷":
+                    elements.append(element)
+                default:
+                    elements.append((Double(element)?.cleanFormat)!)
+                
+            }
+        }
+        let stackElements = elements.joined(separator: "")
         return stackElements
     }
 }
@@ -60,7 +71,10 @@ extension Double {
         return self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
       
     }
-
+    func cleanValueTo(_ decimals:Int) -> String {//formato con N o sin decimales segun el valor
+        return self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(format: "%.\(decimals)f",self)
+        
+    }
 }
 
 class ViewController: UIViewController {
@@ -212,7 +226,7 @@ class ViewController: UIViewController {
         
         //Muestra en la etiqueta la expresion completa
         //Evalua y retorna el resultado
-        cajaComandos.text = expresionInFix.description + String(numeroActual)
+        cajaComandos.text = expresionInFix.description + Double(numeroActual).cleanFormat
         let resultado = evaluarExpresion(numeroActual)
         if resultado == nil{
             cajaResultado.text = ""
@@ -236,8 +250,8 @@ class ViewController: UIViewController {
             //O se cambia el operador o es un negativo
             if (operador != "-" || (operador == "-" && operador == operadorActual)){
                 if operador != "-"{
-                    expresionInFix.pop()//.removeLast()
-                    expresionInFix.push(operador) //+= operador
+                    expresionInFix.pop()
+                    expresionInFix.push(operador)
                     cajaComandos.text = expresionInFix.description
                     operadorActual = operador
                     negativoNumero=false
@@ -306,7 +320,7 @@ class ViewController: UIViewController {
             cajaComandos.text = "0"
         }else{
             cajaComandos.text = resultado?.cleanFormat
-            let resultadoStr = resultado?.cleanValue
+            let resultadoStr = resultado?.cleanValueTo(6)
             expresionInFix.push(resultadoStr!)
         }
         cajaResultado.text=""
