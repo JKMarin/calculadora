@@ -37,19 +37,28 @@ public struct Stack<T> {
 extension Stack: CustomStringConvertible {
     public var description: String {
         let stackElements = array.map { "\($0)" }.joined(separator: "")
-        //
+        
         return stackElements
     }
 }
-extension Float {
-    var cleanValue: String {
+extension String{
+    var cleanFormat: String{
+        return self
+    }
+}
+extension Double {
+    var cleanFormat: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = self.truncatingRemainder(dividingBy: 1) == 0 ? 0 : 8
         
-        //self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
         return  formatter.string(from: NSNumber(value:self))!
     }
+    var cleanValue: String {
+        return self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
+      
+    }
+
 }
 class ViewController: UIViewController {
     
@@ -69,7 +78,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        cajaComandos.text=""
+        cajaComandos.text="0"
         cajaResultado.text=""
     }
 
@@ -81,7 +90,7 @@ class ViewController: UIViewController {
     func precedencia(_ operador:String)-> Int{
         switch operador{
         case "+","-": return 1
-        case "x","/": return 2
+        case "x","÷": return 2
         default: return 0
         }
 
@@ -93,11 +102,12 @@ class ViewController: UIViewController {
             return false
         }
     }
+    
     func generarPostFix(_ ultimoValor:Int){
         expresonPostFix.removeAll()
         for valor in expresionInFix.array{
             switch valor{
-            case "+","-","x","/":
+            case "+","-","x","÷":
                 if pilaOperadores.isEmpty{
                     pilaOperadores.push(valor)
                 }else{
@@ -123,20 +133,20 @@ class ViewController: UIViewController {
         }
     }
     
-    func evaluarExpresion(_ ultimoValor:Int){
-        var pilaValores=Stack<Float>()
-        var operando1:Float=0
-        var operando2:Float=0
-        var resultado:Float=0
+    func evaluarExpresion(_ ultimoValor:Int) -> Double?{
+        var pilaValores=Stack<Double>()
+        var operando1:Double=0
+        var operando2:Double=0
+        var resultado:Double=0
         
         generarPostFix(ultimoValor)
         for item in expresonPostFix{
             switch item{
-            case "+","-","x","/":
+            case "+","-","x","÷":
                 operando2=pilaValores.pop()!
                 operando1=pilaValores.pop()!
             default:
-                pilaValores.push(Float(item)!)
+                pilaValores.push(Double(item)!)
             }
             switch item{
             case "+": resultado = operando1 + operando2
@@ -145,27 +155,26 @@ class ViewController: UIViewController {
                 pilaValores.push(resultado)
             case "x":resultado = operando1 * operando2
                 pilaValores.push(resultado)
-            case "/":resultado = operando1 / operando2
+            case "÷":resultado = operando1 / operando2
                 pilaValores.push(resultado)
                 
             default: break
-                
+              	
             }
             
         }
         if pilaValores.isEmpty{
-            cajaResultado.text=""
+            return nil
         }else{
-            cajaResultado.text=pilaValores.pop()!.cleanValue//expresonPostFix.joined()
+            return pilaValores.pop()!//expresonPostFix.joined()
         }
     }
-    func suma(a:Int,b:Int)-> Int{
-        return (a+b)
-    }
-    func resta(a:Int,b:Int)-> Int{
-        return (a-b)
-    }
+    
     func agregaDigito(digito:Int){
+        if operadorActual == "="{
+            operadorActual=""
+            expresionInFix.clear()
+        }
         if (digito == 0 && numeroActual==0){
             return
         }
@@ -183,9 +192,17 @@ class ViewController: UIViewController {
             negativoNumero = false
         }
         cajaComandos.text = expresionInFix.description + String(numeroActual)
-        evaluarExpresion(numeroActual)
+        let resultado = evaluarExpresion(numeroActual)
+        if resultado == nil{
+            cajaResultado.text = ""
+        }else{
+            cajaResultado.text = resultado?.cleanFormat
+        }
     }
     func presionaComando (operador:String) {
+        if operadorActual == "="{
+            operadorActual=""
+        }
         digitandoNumero = false
         if (numeroActual != 0){
             expresionInFix.push(String(numeroActual)) //+= String(numeroActual)
@@ -218,18 +235,14 @@ class ViewController: UIViewController {
         }
         digitandoOperador = true
         operadorActual = operador
-        //lblComandos.text = lblComandos.text! + comando
-        switch operador {
-        case "+":
-            resultadoAcumulado = suma(a:resultadoAcumulado,b:numeroActual)
-        case "-":
-            resultadoAcumulado = resta(a:resultadoAcumulado,b:numeroActual)
-        case "X": suma(a:1,b:2)
-        case "/": suma(a:1,b:2)
-        default: "Nothing"
-            
+        
+        
+        let resultado = evaluarExpresion(0)
+        if resultado == nil{
+            cajaResultado.text = ""
+        }else{
+            cajaResultado.text = resultado?.cleanFormat
         }
-        evaluarExpresion(0)
         numeroActual = 0
         expresionInFix.push(operador) //+= operador
         cajaComandos.text = expresionInFix.description
@@ -245,13 +258,43 @@ class ViewController: UIViewController {
         presionaComando(operador:sender.titleLabel!.text!)
     }
     
-    
-    @IBAction func clickDone(_ sender: UIButton) {
-        //lblComandos.text = String(resultadoAcumulado)
-        cajaComandos.text=""
-        resultadoAcumulado=0
+    @IBAction func clickIgual(_ sender: UIButton) {
+        var tope:String=""
+        if numeroActual != 0{
+            expresionInFix.push(String(numeroActual))
+        }else{
+            tope=expresionInFix.peek()!
+            switch tope{
+            case "+","-","x","÷":expresionInFix.pop()
+            default:break
+            }
+        }
+        let resultado = evaluarExpresion(0)
+        expresionInFix.clear()
+        if resultado == nil{
+            cajaComandos.text = "0"
+        }else{
+            cajaComandos.text = resultado?.cleanFormat
+            let resultadoStr = resultado?.cleanValue
+            expresionInFix.push(resultadoStr!)
+        }
+        cajaResultado.text=""
         numeroActual=0
-        
+        digitandoNumero=false
+        digitandoOperador=false
+        operadorActual="="
+        negativoNumero=false
+    }
+    
+    @IBAction func clickBorrar(_ sender: UIButton) {
+        expresionInFix.clear()
+        cajaComandos.text = "0"
+        cajaResultado.text=""
+        numeroActual=0
+        digitandoNumero=false
+        digitandoOperador=false
+        operadorActual=""
+        negativoNumero=false
     }
     
 }
