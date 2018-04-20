@@ -8,6 +8,9 @@
 
 import UIKit
 public struct Stack<T> {
+    //Estructura de Pila(Stack) utililizada para el control de precedencia de operadores
+    //tomado y adaptado de https://github.com/raywenderlich/swift-algorithm-club
+    //
     fileprivate var array = [T]()
     
     public var count: Int {
@@ -34,46 +37,45 @@ public struct Stack<T> {
         array.removeAll()
     }
 }
+
 extension Stack: CustomStringConvertible {
+    //Extension de la clase para convertir el arreglo en un string https://github.com/raywenderlich/swift-algorithm-club
     public var description: String {
         let stackElements = array.map { "\($0)" }.joined(separator: "")
         
         return stackElements
     }
 }
-extension String{
-    var cleanFormat: String{
-        return self
-    }
-}
+
 extension Double {
-    var cleanFormat: String {
+    //Se extiende la Clase Double para darle formato de miles y decimales para mostarlo en pantalla
+    var cleanFormat: String {//formato miles
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = self.truncatingRemainder(dividingBy: 1) == 0 ? 0 : 8
         
         return  formatter.string(from: NSNumber(value:self))!
     }
-    var cleanValue: String {
+    var cleanValue: String {//formato con o sin decimales segun el valor
         return self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self) : String(self)
       
     }
 
 }
+
 class ViewController: UIViewController {
-    
+    //Referencias a los componentes de etiquetas
     @IBOutlet weak var cajaComandos: UILabel!
     @IBOutlet weak var cajaResultado: UILabel!
     
-    var numeroActual:Int=0
-    var operadorActual:String=""
-    var resultadoAcumulado:Int=0
-    var expresionInFix = Stack<String>()//String=""
-    var pilaOperadores = Stack<String>()
-    var expresonPostFix = [String]()
-    var digitandoNumero:Bool=false
-    var digitandoOperador:Bool=false
-    var negativoNumero:Bool=false
+    //Declaracion de variables globales
+    var numeroActual:Int = 0                //Valor de numero que se forma a usar 0..9
+    var operadorActual:String = ""          //Valor del ultimo operador digitado
+    var expresionInFix = Stack<String>()    //Estructura de pila que almacena la expresion en "infix"
+    var expresonPostFix = [String]()        //Arreglo para almacenar expresion en "postfix"
+    var digitandoNumero:Bool = false        //Indica si se esta digitando numeros
+    var digitandoOperador:Bool = false      //Indica si se esta digitanto operadores
+    var negativoNumero:Bool = false         //Indica si se digita un "-" luego de algun operador para manejar negativos
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -88,14 +90,16 @@ class ViewController: UIViewController {
     }
     
     func precedencia(_ operador:String)-> Int{
+        //Define el valor de precedencia de operadores
         switch operador{
         case "+","-": return 1
         case "x","÷": return 2
         default: return 0
         }
-
     }
+    
     func mayorPrecedencia(_ operador:String, _ comparador:String) -> Bool {
+        //Compara y define si un operador tiene mayor precedecia que otro
         if precedencia(operador)>precedencia(comparador){
             return true
         }else{
@@ -104,6 +108,11 @@ class ViewController: UIViewController {
     }
     
     func generarPostFix(_ ultimoValor:Int){
+        //Transforma una expresion en "infix" 1+2x3 a "postfix" 1,2,3,x,+
+        //Algoritmo adaptado de la pagina http://www.paulgriffiths.net/program/c/calc1.php
+        
+        var pilaOperadores = Stack<String>()    //Estructura de pila que almacena operadores
+        
         expresonPostFix.removeAll()
         for valor in expresionInFix.array{
             switch valor{
@@ -133,32 +142,39 @@ class ViewController: UIViewController {
         }
     }
     
-    func evaluarExpresion(_ ultimoValor:Int) -> Double?{
-        var pilaValores=Stack<Double>()
-        var operando1:Double=0
-        var operando2:Double=0
-        var resultado:Double=0
+    func evaluarExpresion(_ ultimoValor:Int) -> Double? {
+        //Evalua la expresion en "postfix" y retorna el resultado de la misma
+        //Algoritmo adaptado de la pagina http://www.paulgriffiths.net/program/c/calc1.php
+        
+        var pilaValores = Stack<Double>()
+        var operando1:Double = 0
+        var operando2:Double = 0
+        var resultado:Double = 0
         
         generarPostFix(ultimoValor)
         for item in expresonPostFix{
             switch item{
-            case "+","-","x","÷":
-                operando2=pilaValores.pop()!
-                operando1=pilaValores.pop()!
-            default:
-                pilaValores.push(Double(item)!)
+                case "+","-","x","÷":
+                    operando2 = pilaValores.pop()!
+                    operando1 = pilaValores.pop()!
+                default:
+                    pilaValores.push(Double(item)!)
             }
-            switch item{
-            case "+": resultado = operando1 + operando2
-                  pilaValores.push(resultado)
-            case "-":resultado = operando1 - operando2
-                pilaValores.push(resultado)
-            case "x":resultado = operando1 * operando2
-                pilaValores.push(resultado)
-            case "÷":resultado = operando1 / operando2
-                pilaValores.push(resultado)
+            switch item{    //Ejecuta las operaciones
+                case "+":
+                    resultado = operando1 + operando2
+                    pilaValores.push(resultado)
+                case "-":
+                    resultado = operando1 - operando2
+                    pilaValores.push(resultado)
+                case "x":
+                    resultado = operando1 * operando2
+                    pilaValores.push(resultado)
+                case "÷":
+                    resultado = operando1 / operando2
+                    pilaValores.push(resultado)
                 
-            default: break
+                default: break
               	
             }
             
@@ -166,13 +182,15 @@ class ViewController: UIViewController {
         if pilaValores.isEmpty{
             return nil
         }else{
-            return pilaValores.pop()!//expresonPostFix.joined()
+            return pilaValores.pop()!
         }
     }
     
     func agregaDigito(digito:Int){
+        //Maneja los eventos de presionar numeros del 0..9
+        
         if operadorActual == "="{
-            operadorActual=""
+            operadorActual = ""
             expresionInFix.clear()
         }
         if (digito == 0 && numeroActual==0){
@@ -182,15 +200,18 @@ class ViewController: UIViewController {
         digitandoOperador = false
         operadorActual = ""
         if numeroActual >= 0{
-           numeroActual = (numeroActual*10)+digito
+           numeroActual = (numeroActual * 10) + digito
         }else{
-            numeroActual = (numeroActual*10)-digito
+            numeroActual = (numeroActual * 10) - digito
         }
         
-        if negativoNumero{
+        if negativoNumero{ //Controlando los negativos
             numeroActual *= -1
             negativoNumero = false
         }
+        
+        //Muestra en la etiqueta la expresion completa
+        //Evalua y retorna el resultado
         cajaComandos.text = expresionInFix.description + String(numeroActual)
         let resultado = evaluarExpresion(numeroActual)
         if resultado == nil{
@@ -199,15 +220,20 @@ class ViewController: UIViewController {
             cajaResultado.text = resultado?.cleanFormat
         }
     }
+    
     func presionaComando (operador:String) {
+        //Maneja los eventos al presionar los operadores "+","-","x","÷"
+        
         if operadorActual == "="{
             operadorActual=""
         }
         digitandoNumero = false
         if (numeroActual != 0){
-            expresionInFix.push(String(numeroActual)) //+= String(numeroActual)
+            expresionInFix.push(String(numeroActual))
         }
         if digitandoOperador {
+            //Ya se ha presionado un operador antes
+            //O se cambia el operador o es un negativo
             if (operador != "-" || (operador == "-" && operador == operadorActual)){
                 if operador != "-"{
                     expresionInFix.pop()//.removeLast()
@@ -224,6 +250,7 @@ class ViewController: UIViewController {
                 return
             }
         }else{
+            //se procesa el signo negativo
             if (operador != "-" && expresionInFix.isEmpty){
                 return
             }
@@ -233,22 +260,26 @@ class ViewController: UIViewController {
                 return
             }
         }
+        
         digitandoOperador = true
         operadorActual = operador
         
-        
-        let resultado = evaluarExpresion(0)
+        //Se procesa el operador
+        //Muestra en la etiqueta la expresion completa
+        //Evalua y retorna el resultado
+         let resultado = evaluarExpresion(0)
         if resultado == nil{
             cajaResultado.text = ""
         }else{
             cajaResultado.text = resultado?.cleanFormat
         }
         numeroActual = 0
-        expresionInFix.push(operador) //+= operador
+        expresionInFix.push(operador)
         cajaComandos.text = expresionInFix.description
-        //presionaComando(comando:(sender:UIButton).titleLabel!.text!)
+        
     }
     
+    //Eventos de interfaz de usuario para los botones
     @IBAction func clickNumero(_ sender: UIButton) {
         agregaDigito(digito:sender.tag)
         
